@@ -1,0 +1,48 @@
+name: s98-nanopi-plus2-kernel
+version: '4.14.0+'
+summary: The generic arm kernel built for friendlyarm boards
+description:  The Ubuntu linux-generic kernel package as a snap
+grade: stable
+confinement: strict
+type: kernel
+architectures: [ arm64 ]
+
+parts:
+  kernel:
+    plugin: kernel
+    source: https://github.com/friendlyarm/linux.git
+    source-branch: sunxi-4.x.y
+    source-depth: 1
+    source-type: git
+    kdefconfig: [sunxi_arm64_defconfig]
+    kconfigs:
+        - CONFIG_STRICT_DEVMEM=y
+        - CONFIG_DEFAULT_SECURITY_APPARMOR=y
+        - COCONFIG_CC_STACKPROTECTOR=y
+        - COCONFIG_CC_STACKPROTECTOR_STRONG=y
+        - COCONFIG_DEBUG_RODATA=y
+        - COCONFIG_DEBUG_SET_MODULE_RONX=y
+        - COCONFIG_SQUASHFS_XATTR=y
+    kernel-with-firmware: False
+    kernel-initrd-modules:
+        - squashfs
+    kernel-image-target: Image
+    kernel-device-trees:
+        - allwinner/sun50i-h5-nanopi-neo-plus2
+    build-packages: [bc, kmod, cpio]
+  firmware:
+    plugin: dump
+    source: https://github.com/armbian/firmware
+    source-type: git
+    prepare: |
+      ln -sfn ../ap6212/fw_bcm43438a0.bin brcm/brcmfmac43430-sdio.bin
+      ln -sfn ../ap6212/nvram.txt brcm/brcmfmac43430-sdio.txt
+      ln -sfn ../ap6212/fw_bcm43438a1.bin brcm/brcmfmac43430a1-sdio.bin
+      ln -sfn ../ap6212/nvram.txt brcm/brcmfmac43430a1-sdio.txt
+      ln -sfn bcm43438a0.hcd ap6212/4343A0.hcd
+      ln -sfn bcm43438a1.hcd ap6212/BCM43430A1.hcd
+    organize: 
+      "*": firmware/
+    stage:
+      - firmware
+
